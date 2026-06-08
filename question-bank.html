@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AvoHire · Question Bank</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="pageLoader" class="page-loader">
+  <div style="text-align:center"><div class="spinner"></div></div>
+</div>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<button class="hamburger" id="hamburger" aria-label="Open menu">
+  <i class="fas fa-bars" style="font-size:16px;color:var(--text)"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-container">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fas fa-brain"></i></div>
+      AvoHire
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+      <a href="interview-setup.html" class="nav-item"><i class="fas fa-comment-dots"></i><span>Mock Interview</span></a>
+      <a href="question-bank.html" class="nav-item active"><i class="fas fa-layer-group"></i><span>Question Bank</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+      <a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>Leaderboard</span></a>
+      <div class="sidebar-section-label">Account</div>
+      <a href="profile.html" class="nav-item"><i class="fas fa-user-circle"></i><span>Profile</span></a>
+      <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Question Bank</h1>
+        <p class="page-subtitle">Browse, filter, and practice from 500+ curated questions</p>
+      </div>
+      <button class="btn btn-primary" onclick="window.location.href='interview-setup.html'">
+        <i class="fas fa-play-circle"></i> Start Mock Interview
+      </button>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:1.5rem">
+      <div class="stat-card"><div class="stat-label">Total Questions</div><div class="stat-value">120+</div></div>
+      <div class="stat-card"><div class="stat-label">Categories</div><div class="stat-value">11</div></div>
+      <div class="stat-card"><div class="stat-label">Difficulty Levels</div><div class="stat-value">3</div></div>
+      <div class="stat-card"><div class="stat-label">Questions Practiced</div><div class="stat-value" id="practicedCount">0</div></div>
+    </div>
+
+    <!-- Search + Filters -->
+    <div class="search-wrap" style="margin-bottom:0.75rem">
+      <i class="fas fa-search"></i>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search questions by keyword..." autocomplete="off">
+    </div>
+
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1.25rem">
+      <div>
+        <div class="filter-tabs" id="roleFilter" style="flex-wrap:wrap">
+          <div class="filter-tab active" data-value="">All Roles</div>
+          <div class="filter-tab" data-value="General">General</div>
+          <div class="filter-tab" data-value="Behavioral">Behavioral</div>
+          <div class="filter-tab" data-value="Software Engineering">Engineering</div>
+          <div class="filter-tab" data-value="Product Management">Product</div>
+          <div class="filter-tab" data-value="Marketing">Marketing</div>
+          <div class="filter-tab" data-value="Sales">Sales</div>
+          <div class="filter-tab" data-value="Finance">Finance</div>
+          <div class="filter-tab" data-value="Data Analysis">Data</div>
+          <div class="filter-tab" data-value="HR">HR</div>
+          <div class="filter-tab" data-value="Leadership">Leadership</div>
+          <div class="filter-tab" data-value="Customer Support">Support</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center">
+      <span style="font-size:13px;color:var(--text-muted);margin-right:4px">Difficulty:</span>
+      <div class="filter-tabs" id="diffFilter" style="margin-bottom:0">
+        <div class="filter-tab active" data-value="">All</div>
+        <div class="filter-tab" data-value="Easy">Easy</div>
+        <div class="filter-tab" data-value="Medium">Medium</div>
+        <div class="filter-tab" data-value="Hard">Hard</div>
+      </div>
+      <span style="font-size:13px;color:var(--text-muted)" id="resultCount" style="margin-left:auto"></span>
+    </div>
+
+    <!-- Questions List -->
+    <div id="questionsList"></div>
+
+    <!-- Empty state -->
+    <div id="emptySearch" style="display:none;text-align:center;padding:3rem">
+      <i class="fas fa-search" style="font-size:2.5rem;color:var(--text-muted);margin-bottom:1rem"></i>
+      <h3 style="margin-bottom:0.5rem">No questions found</h3>
+      <p style="color:var(--text-secondary);font-size:14px">Try different keywords or reset the filters</p>
+      <button class="btn btn-secondary" style="margin-top:1rem" id="resetFilters">Reset Filters</button>
+    </div>
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

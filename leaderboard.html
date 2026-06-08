@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>AvoHire · Leaderboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="pageLoader" class="page-loader"><div style="text-align:center"><div class="spinner"></div></div></div>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<div class="app-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><i class="fas fa-briefcase" style="color:var(--primary)"></i>AvoHire</div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
+      <a href="interview-setup.html" class="nav-item"><i class="fas fa-comment-dots"></i><span>Mock Interview</span></a>
+      <a href="question-bank.html" class="nav-item"><i class="fas fa-layer-group"></i><span>Question Bank</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+      <a href="leaderboard.html" class="nav-item active"><i class="fas fa-trophy"></i><span>Leaderboard</span></a>
+      <div class="sidebar-section-label">Account</div>
+      <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+      <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+      <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="topbar">
+      <button class="hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="window.location.href='interview-setup.html'"><i class="fas fa-play"></i> Start Interview</button>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">Leaderboard</h1>
+        <p class="page-subtitle">Top performers ranked by average interview score</p>
+      </div>
+
+      <!-- My rank + toggle -->
+      <div class="card" style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div>
+          <div style="font-size:14px;font-weight:600" id="myRank">Loading...</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:3px">Rankings update in real time on this device</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+          <span>Show me on leaderboard</span>
+          <label class="switch"><input type="checkbox" id="toggleLeaderboard"><span class="slider"></span></label>
+        </label>
+      </div>
+
+      <!-- Top 3 podium (shown when 3+ entries) -->
+      <div id="podiumRow" style="display:none;margin-bottom:1.25rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:540px;margin:0 auto">
+          <div id="podium2" style="text-align:center;padding:1rem .75rem;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding-top:1.5rem">
+            <div style="font-size:2rem;margin-bottom:4px">🥈</div>
+            <div id="p2name" style="font-size:12px;font-weight:600"></div>
+            <div id="p2score" style="font-size:18px;font-weight:800;color:var(--primary)"></div>
+          </div>
+          <div id="podium1" style="text-align:center;padding:1rem .75rem;background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #f59e0b;border-radius:var(--radius-lg);transform:translateY(-10px)">
+            <div style="font-size:2.5rem;margin-bottom:4px">🥇</div>
+            <div id="p1name" style="font-size:13px;font-weight:700"></div>
+            <div id="p1score" style="font-size:22px;font-weight:800;color:#b45309"></div>
+          </div>
+          <div id="podium3" style="text-align:center;padding:1rem .75rem;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding-top:1.5rem">
+            <div style="font-size:2rem;margin-bottom:4px">🥉</div>
+            <div id="p3name" style="font-size:12px;font-weight:600"></div>
+            <div id="p3score" style="font-size:18px;font-weight:800;color:var(--warning)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="leaderboardEmpty" style="display:none;text-align:center;padding:3rem 1rem;color:var(--text-muted)">
+        <i class="fas fa-trophy" style="font-size:3rem;margin-bottom:1rem;display:block;opacity:.3"></i>
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px">No one on the leaderboard yet</div>
+        <div style="font-size:13px;margin-bottom:1.5rem">Complete interviews and enable "Show me on leaderboard" above to appear here</div>
+        <button class="btn btn-primary" onclick="window.location.href='interview-setup.html'"><i class="fas fa-play"></i> Start Practicing</button>
+      </div>
+
+      <!-- List -->
+      <div id="leaderboardList"></div>
+
+      <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:1rem;padding:.75rem;background:var(--bg-hover);border-radius:var(--radius-sm)">
+        <i class="fas fa-info-circle"></i> Rankings are local to this device. A backend server is required for global rankings across all users.
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<script src="script.js"></script>
+<script>
+// Podium logic after leaderboard renders
+const origInit = window.initLeaderboard;
+document.addEventListener('DOMContentLoaded',()=>{
+  // Podium will be populated after initLeaderboard runs
+  const obs = new MutationObserver(()=>{
+    const items = document.querySelectorAll('#leaderboardList > div');
+    const podium = document.getElementById('podiumRow');
+    if(items.length >= 3 && podium){
+      podium.style.display='block';
+      // Extract scores from rendered items (top 3)
+      const getInfo = (el) => ({
+        name: el.querySelector('span[style*="font-weight:600"]')?.textContent?.trim()||'',
+        score: el.querySelector('[style*="font-size:24px"]')?.textContent?.trim()||''
+      });
+      const top = [...items].slice(0,3).map(getInfo);
+      if(top[0]){document.getElementById('p1name').textContent=top[0].name;document.getElementById('p1score').textContent=top[0].score+'/10';}
+      if(top[1]){document.getElementById('p2name').textContent=top[1].name;document.getElementById('p2score').textContent=top[1].score+'/10';}
+      if(top[2]){document.getElementById('p3name').textContent=top[2].name;document.getElementById('p3score').textContent=top[2].score+'/10';}
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.getElementById('leaderboardList'),{childList:true});
+});
+</script>
+</body>
+</html>

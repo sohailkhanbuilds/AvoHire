@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AvoHire · Setup Interview</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .setup-page { min-height:100vh; display:flex; flex-direction:column; }
+    .setup-topbar { background:var(--bg-card); border-bottom:1px solid var(--border); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; }
+    .setup-brand { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px; }
+    .setup-body { flex:1; max-width:760px; margin:0 auto; padding:2rem 1.5rem; width:100%; }
+    .step-header { margin-bottom:2rem; }
+    .step-label { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--primary); margin-bottom:6px; }
+    .step-title { font-family:'Syne',sans-serif; font-size:26px; font-weight:700; margin-bottom:6px; }
+    .step-sub { font-size:14px; color:var(--text-secondary); }
+
+    .option-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:12px; margin-bottom:1.75rem; }
+    .option-card {
+      background:var(--bg-card); border:2px solid var(--border); border-radius:var(--radius);
+      padding:1.25rem 1rem; cursor:pointer; transition:all 0.2s; text-align:center;
+      position:relative;
+    }
+    .option-card:hover { border-color:var(--primary); box-shadow:var(--shadow); transform:translateY(-1px); }
+    .option-card.selected { border-color:var(--primary); background:var(--primary-glow); }
+    .option-card.locked { opacity:0.5; cursor:not-allowed; }
+    .option-card.locked:hover { border-color:var(--border); box-shadow:none; transform:none; }
+    .option-icon { font-size:1.75rem; margin-bottom:0.75rem; display:block; }
+    .option-name { font-weight:600; font-size:14px; margin-bottom:3px; }
+    .option-desc { font-size:12px; color:var(--text-secondary); line-height:1.4; }
+    .lock-badge {
+      position:absolute; top:8px; right:8px;
+      background:var(--warning-bg); color:var(--warning); border-radius:20px;
+      padding:2px 8px; font-size:10px; font-weight:600;
+    }
+    .plan-lock-note { background:var(--warning-bg); border:1px solid rgba(245,158,11,0.25); border-radius:var(--radius-sm); padding:0.75rem 1rem; font-size:13px; color:#b45309; margin-bottom:1.75rem; display:flex; align-items:center; gap:10px; }
+
+    .q-count-wrap { display:flex; align-items:center; gap:1rem; margin-bottom:1.75rem; }
+    .q-count-btn {
+      width:40px; height:40px; border-radius:50%;
+      background:var(--bg-card); border:1.5px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; font-weight:600; cursor:pointer; transition:all 0.2s;
+      flex-shrink:0;
+    }
+    .q-count-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .q-count-num { font-family:'Syne',sans-serif; font-size:36px; font-weight:700; min-width:48px; text-align:center; }
+    .q-count-label { font-size:13px; color:var(--text-secondary); }
+
+    .preview-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; margin-bottom:1.75rem; }
+    .preview-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; }
+    .preview-row:last-child { border-bottom:none; }
+    .preview-label { color:var(--text-secondary); }
+    .preview-val { font-weight:600; }
+
+    .setup-footer { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:2rem; flex-wrap:wrap; }
+
+    .section-divider { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); margin-bottom:0.75rem; }
+
+    @media(max-width:600px) { .setup-body { padding:1rem; } .step-title { font-size:20px; } }
+  </style>
+</head>
+<body>
+<div id="pageLoader" class="page-loader"><div style="text-align:center"><div class="spinner"></div></div></div>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<div class="setup-page">
+  <div class="setup-topbar">
+    <div class="setup-brand"><i class="fas fa-brain" style="color:var(--primary)"></i>AvoHire</div>
+    <a href="dashboard.html" style="font-size:13px;color:var(--text-secondary);text-decoration:none;display:flex;align-items:center;gap:6px">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="setup-body">
+    <div class="step-header">
+      <div class="step-label">Interview Setup</div>
+      <h1 class="step-title">Configure Your Session</h1>
+      <p class="step-sub">Choose what you want to practice — we'll pick the best questions for you.</p>
+    </div>
+
+    <!-- Plan lock notice (shown for free users) -->
+    <div class="plan-lock-note" id="planLockNote" style="display:none">
+      <i class="fas fa-gift"></i>
+      <span>
+        <strong>Free plan:</strong> General &amp; Behavioral types · Easy &amp; Mixed difficulty · Max 5 questions · 5 interviews/month.
+        <a href="payment.html?plan=pro" style="color:#b45309;font-weight:600;margin-left:4px">Upgrade to Pro</a> for Technical, Company Prep, Hard difficulty &amp; unlimited sessions.
+      </span>
+    </div>
+
+    <!-- Interview Type -->
+    <div class="section-divider">Interview Type</div>
+    <div class="option-grid" id="typeGrid">
+      <div class="option-card selected" data-type="general" onclick="selectType(this)">
+        <span class="option-icon">🎯</span>
+        <div class="option-name">General</div>
+        <div class="option-desc">All-round behavioral & personal questions</div>
+      </div>
+      <div class="option-card" data-type="behavioral" onclick="selectType(this)">
+        <span class="option-icon">🧠</span>
+        <div class="option-name">Behavioral</div>
+        <div class="option-desc">STAR method, situational questions</div>
+      </div>
+      <div class="option-card" data-type="technical" id="typetech" onclick="selectType(this)">
+        <span class="option-icon">💻</span>
+        <div class="option-name">Technical</div>
+        <div class="option-desc">Coding, system design, CS concepts</div>
+        <span class="lock-badge" id="techBadge" style="display:none"><i class="fas fa-lock"></i> Pro</span>
+      </div>
+      <div class="option-card" id="typecompany" data-type="company" onclick="selectType(this)">
+        <span class="option-icon">🏢</span>
+        <div class="option-name">Company Prep</div>
+        <div class="option-desc">Role-specific, company-targeted</div>
+        <span class="lock-badge" id="companyBadge" style="display:none"><i class="fas fa-lock"></i> Pro</span>
+      </div>
+    </div>
+
+    <!-- Company selection (shown for company type or pro/team) -->
+    <div id="companySection" style="display:none;margin-bottom:1.75rem">
+      <div class="section-divider">Target Company <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted)">(optional)</span></div>
+      <div class="option-grid" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr))">
+        <div class="option-card" data-company="" onclick="selectCompany(this)">
+          <div style="font-size:1.5rem;margin-bottom:6px;text-align:center"><i class="fas fa-random" style="color:var(--text-muted)"></i></div>
+          <div class="option-name" style="font-size:13px">Any</div>
+          <div class="option-desc" style="font-size:11px">Mix of all</div>
+        </div>
+        <div class="option-card selected" data-company="Google" onclick="selectCompany(this)">
+          <div style="font-size:1.5rem;margin-bottom:6px;text-align:center"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg></div>
+          <div class="option-name" style="font-size:13px">Google</div>
+          <div class="option-desc" style="font-size:11px">FAANG</div>
+        </div>
+        <div class="option-card" data-company="Amazon" onclick="selectCompany(this)">
+          <div style="font-size:1.5rem;margin-bottom:6px;text-align:center"><i class="fab fa-amazon" style="color:#FF9900;font-size:22px"></i></div>
+          <div class="option-name" style="font-size:13px">Amazon</div>
+          <div class="option-desc" style="font-size:11px">Leadership Principles</div>
+        </div>
+        <div class="option-card" data-company="Microsoft" onclick="selectCompany(this)">
+          <div style="font-size:1.5rem;margin-bottom:6px;text-align:center"><i class="fab fa-microsoft" style="color:#00A4EF;font-size:22px"></i></div>
+          <div class="option-name" style="font-size:13px">Microsoft</div>
+          <div class="option-desc" style="font-size:11px">Growth mindset</div>
+        </div>
+        <div class="option-card" data-company="Meta" onclick="selectCompany(this)">
+          <div style="font-size:1.5rem;margin-bottom:6px;text-align:center"><i class="fab fa-facebook" style="color:#1877F2;font-size:22px"></i></div>
+          <div class="option-name" style="font-size:13px">Meta</div>
+          <div class="option-desc" style="font-size:11px">Move fast culture</div>
+        </div>
+        <div class="option-card" data-company="Startup" onclick="selectCompany(this)">
+          <div style="font-size:1.5rem;margin-bottom:6px;text-align:center"><i class="fas fa-rocket" style="color:var(--primary);font-size:20px"></i></div>
+          <div class="option-name" style="font-size:13px">Startup</div>
+          <div class="option-desc" style="font-size:11px">Wear many hats</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Difficulty -->
+    <div class="section-divider">Difficulty</div>
+    <div class="option-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.75rem">
+      <div class="option-card" data-diff="Easy" onclick="selectDiff(this)">
+        <span class="option-icon" style="font-size:1.25rem">🟢</span>
+        <div class="option-name">Easy</div>
+        <div class="option-desc">Basic questions, great for beginners</div>
+      </div>
+      <div class="option-card selected" data-diff="Mixed" onclick="selectDiff(this)">
+        <span class="option-icon" style="font-size:1.25rem">🟡</span>
+        <div class="option-name">Mixed</div>
+        <div class="option-desc">Easy + Medium, balanced practice</div>
+      </div>
+      <div class="option-card" id="diffHard" data-diff="Hard" onclick="selectDiff(this)">
+        <span class="option-icon" style="font-size:1.25rem">🔴</span>
+        <div class="option-name">Hard</div>
+        <div class="option-desc">Challenging questions, senior level</div>
+        <span class="lock-badge" id="hardBadge" style="display:none"><i class="fas fa-lock"></i> Pro</span>
+      </div>
+    </div>
+
+    <!-- Number of Questions -->
+    <div class="section-divider">Number of Questions</div>
+    <div class="q-count-wrap">
+      <button class="q-count-btn" onclick="changeCount(-1)">−</button>
+      <div>
+        <div class="q-count-num" id="countDisplay">5</div>
+        <div class="q-count-label">questions</div>
+      </div>
+      <button class="q-count-btn" onclick="changeCount(1)">+</button>
+      <div style="margin-left:1rem;font-size:13px;color:var(--text-secondary)" id="countNote">~12 minutes</div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:1.75rem" id="countLimit"></div>
+
+    <!-- Session Preview -->
+    <div class="section-divider">Session Preview</div>
+    <div class="preview-card">
+      <div class="preview-row"><span class="preview-label">Interview Type</span><span class="preview-val" id="prevType">General</span></div>
+      <div class="preview-row"><span class="preview-label">Difficulty</span><span class="preview-val" id="prevDiff">Mixed</span></div>
+      <div class="preview-row"><span class="preview-label">Questions</span><span class="preview-val" id="prevCount">5 questions</span></div>
+      <div class="preview-row"><span class="preview-label">Est. Duration</span><span class="preview-val" id="prevDuration">~12 minutes</span></div>
+      <div class="preview-row"><span class="preview-label">Your Role</span><span class="preview-val" id="prevRole">—</span></div>
+      <div class="preview-row"><span class="preview-label">Plan</span><span class="preview-val" id="prevPlan">Free</span></div>
+    </div>
+
+    <div class="setup-footer">
+      <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+        <i class="fas fa-arrow-left"></i> Cancel
+      </button>
+      <button class="btn btn-primary btn-lg" id="startBtn" onclick="startInterview()">
+        <i class="fas fa-play-circle"></i> Start Interview
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+// Setup page logic (runs after script.js)
+document.addEventListener('DOMContentLoaded', () => {
+  if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; return; }
+
+  const plan = getPlan();
+  const profile = getProfile();
+  const interviews = getInterviews();
+
+  // Show plan lock note for free users
+  if (plan === 'free') {
+    document.getElementById('planLockNote').style.display = 'flex';
+    // Lock technical and company prep
+    const techCard = document.getElementById('typetech');
+    const compCard = document.getElementById('typecompany');
+    const hardCard = document.getElementById('diffHard');
+    if (techCard) { techCard.classList.add('locked'); document.getElementById('techBadge').style.display = 'block'; }
+    if (compCard) { compCard.classList.add('locked'); document.getElementById('companyBadge').style.display = 'block'; }
+    if (hardCard) { hardCard.classList.add('locked'); document.getElementById('hardBadge').style.display = 'block'; }
+    document.getElementById('countLimit').textContent = 'Free plan: max 5 questions per session. Upgrade to Pro for up to 10.';
+  }
+
+  // Show company section for pro/team
+  if (plan === 'pro' || plan === 'team') {
+    document.getElementById('companySection').style.display = 'block';
+  }
+
+  // Set role preview
+  document.getElementById('prevRole').textContent = profile.targetRole || 'Not set';
+  document.getElementById('prevPlan').textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+
+  // Monthly usage check for free
+  if (plan === 'free') {
+    const used = interviews.filter(iv => {
+      const d = new Date(iv.timestamp), n = new Date();
+      return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+    }).length;
+    if (used >= 5) {
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('startBtn').innerHTML = '<i class="fas fa-lock"></i> Limit Reached (5/5)';
+      document.getElementById('planLockNote').innerHTML = '<i class="fas fa-exclamation-circle"></i><span>You\'ve used all <strong>5 free interviews</strong> this month. <a href="landing.html#pricing" style="color:#b45309;font-weight:600">Upgrade to Pro</a> for unlimited access.</span>';
+    }
+  }
+
+  updatePreview();
+});
+
+let selectedType = 'general';
+let selectedDiff = 'Mixed';
+let selectedCompany = 'Google';
+let qCount = 5;
+
+function selectType(el) {
+  if (el.classList.contains('locked')) {
+    showToast('Upgrade to Pro to unlock this interview type', 'warning');
+    window.location.href = 'landing.html#pricing';
+    return;
+  }
+  document.querySelectorAll('#typeGrid .option-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = el.dataset.type;
+
+  // Show company section when company type selected (pro+)
+  const plan = getPlan();
+  if (selectedType === 'company' || plan === 'pro' || plan === 'team') {
+    document.getElementById('companySection').style.display = 'block';
+  } else {
+    document.getElementById('companySection').style.display = 'none';
+  }
+  updatePreview();
+}
+
+function selectDiff(el) {
+  if (el.classList.contains('locked')) {
+    showToast('Upgrade to Pro for Hard difficulty questions', 'warning');
+    window.location.href = 'landing.html#pricing';
+    return;
+  }
+  document.querySelectorAll('[data-diff]').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDiff = el.dataset.diff;
+  updatePreview();
+}
+
+function selectCompany(el) {
+  document.querySelectorAll('[data-company]').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCompany = el.dataset.company;
+  updatePreview();
+}
+
+function changeCount(delta) {
+  const plan = getPlan();
+  const max = (plan === 'free') ? 5 : 10;
+  const min = 3;
+  qCount = Math.min(max, Math.max(min, qCount + delta));
+  document.getElementById('countDisplay').textContent = qCount;
+  const mins = Math.round(qCount * 2.5);
+  document.getElementById('countNote').textContent = `~${mins} minutes`;
+  updatePreview();
+}
+
+function updatePreview() {
+  const typeNames = { general: 'General', behavioral: 'Behavioral', technical: 'Technical', company: 'Company Prep' };
+  document.getElementById('prevType').textContent = typeNames[selectedType] || selectedType;
+  document.getElementById('prevDiff').textContent = selectedDiff;
+  document.getElementById('prevCount').textContent = qCount + ' questions';
+  const mins = Math.round(qCount * 2.5);
+  document.getElementById('prevDuration').textContent = '~' + mins + ' minutes';
+  document.getElementById('countNote').textContent = '~' + mins + ' minutes';
+}
+
+function startInterview() {
+  // Save setup config to sessionStorage
+  const config = { type: selectedType, difficulty: selectedDiff, count: qCount, company: selectedCompany };
+  Store.set('iq_interview_config', config);
+  navigateTo('interview.html');
+}
+</script>
+</body>
+</html>

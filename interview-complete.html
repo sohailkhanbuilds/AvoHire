@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AvoHire · Session Complete</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .complete-page { min-height:100vh; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:2rem 1rem; }
+    .complete-topbar { width:100%; max-width:700px; display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; }
+    .complete-brand { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px; }
+
+    .score-circle-wrap { text-align:center; margin-bottom:2rem; }
+    .score-circle {
+      width:140px; height:140px; border-radius:50%;
+      background:var(--bg-card); border:6px solid var(--primary);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      margin:0 auto 1rem;
+      box-shadow: 0 0 0 12px var(--primary-glow);
+    }
+    .score-circle.excellent { border-color:var(--success); box-shadow:0 0 0 12px rgba(34,197,94,0.1); }
+    .score-circle.good { border-color:var(--primary); box-shadow:0 0 0 12px var(--primary-glow); }
+    .score-circle.average { border-color:var(--warning); box-shadow:0 0 0 12px rgba(245,158,11,0.1); }
+    .score-circle.needs-work { border-color:var(--danger); box-shadow:0 0 0 12px rgba(239,68,68,0.1); }
+    .score-num { font-family:'Syne',sans-serif; font-size:40px; font-weight:800; line-height:1; }
+    .score-denom { font-size:14px; color:var(--text-secondary); }
+    .score-grade { font-size:15px; font-weight:600; }
+
+    .confetti-wrap { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:1000; overflow:hidden; }
+
+    .complete-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.5rem; max-width:700px; width:100%; margin-bottom:1rem; }
+    .complete-card h3 { font-size:15px; margin-bottom:1rem; }
+
+    .skill-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+    .skill-name { font-size:13px; color:var(--text-secondary); width:130px; flex-shrink:0; }
+    .skill-bar-wrap { flex:1; }
+    .skill-val { font-size:13px; font-weight:600; width:36px; text-align:right; flex-shrink:0; }
+
+    .qa-item { border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; margin-bottom:0.75rem; }
+    .qa-header { display:flex; align-items:center; justify-content:space-between; padding:0.875rem 1rem; background:var(--bg-hover); cursor:pointer; gap:10px; }
+    .qa-header:hover { background:var(--primary-glow); }
+    .qa-q { font-size:13px; font-weight:500; flex:1; }
+    .qa-score { font-size:13px; font-weight:700; flex-shrink:0; }
+    .qa-body { padding:1rem; display:none; }
+    .qa-body.open { display:block; }
+    .qa-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin-bottom:5px; margin-top:0.75rem; }
+    .qa-label:first-child { margin-top:0; }
+    .qa-text { font-size:13px; color:var(--text-secondary); line-height:1.6; }
+
+    .action-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; max-width:700px; width:100%; margin-bottom:2rem; }
+
+    .cheat-banner { max-width:700px; width:100%; background:var(--warning-bg); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius-sm); padding:0.875rem 1rem; font-size:13px; color:#b45309; margin-bottom:1rem; display:flex; align-items:center; gap:10px; }
+  </style>
+</head>
+<body>
+<div id="pageLoader" class="page-loader"><div style="text-align:center"><div class="spinner"></div></div></div>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<div class="complete-page">
+  <div class="complete-topbar">
+    <div class="complete-brand"><i class="fas fa-brain" style="color:var(--primary)"></i>AvoHire</div>
+    <a href="dashboard.html" style="font-size:13px;color:var(--text-secondary);text-decoration:none;display:flex;align-items:center;gap:6px">
+      <i class="fas fa-home"></i> Dashboard
+    </a>
+  </div>
+
+  <!-- Score Circle -->
+  <div class="score-circle-wrap">
+    <div class="score-circle" id="scoreCircle">
+      <div class="score-num" id="scoreNum">—</div>
+      <div class="score-denom">/10</div>
+    </div>
+    <div class="score-grade" id="scoreGrade"></div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px" id="scoreSubtext"></div>
+  </div>
+
+  <!-- Cheat warning if any -->
+  <div class="cheat-banner" id="cheatBanner" style="display:none">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span><strong id="cheatCount">0</strong> integrity warning(s) were recorded in this session. Staying in frame and focusing on your own answers is important for accurate scoring.</span>
+  </div>
+
+  <!-- Stats row -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:700px;width:100%;margin-bottom:1rem">
+    <div class="stat-card" style="text-align:center">
+      <div class="stat-label">Questions</div>
+      <div class="stat-value" id="statQ">—</div>
+    </div>
+    <div class="stat-card" style="text-align:center">
+      <div class="stat-label">Duration</div>
+      <div class="stat-value" id="statDur">—</div>
+    </div>
+    <div class="stat-card" style="text-align:center">
+      <div class="stat-label">Total Interviews</div>
+      <div class="stat-value" id="statTotal">—</div>
+    </div>
+  </div>
+
+  <!-- Skill Breakdown -->
+  <div class="complete-card">
+    <h3>Skill Breakdown</h3>
+    <div id="skillBreakdown"></div>
+  </div>
+
+  <!-- Q&A Review (Pro+ only) -->
+  <div class="complete-card" id="qaCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <h3 style="margin:0">Answer Review</h3>
+      <span class="badge badge-info" id="qaLockBadge" style="display:none"><i class="fas fa-lock"></i> Pro feature</span>
+    </div>
+    <div id="qaList"></div>
+    <div id="qaLocked" style="display:none;text-align:center;padding:1.5rem;background:var(--bg-hover);border-radius:var(--radius-sm)">
+      <i class="fas fa-lock" style="font-size:1.5rem;color:var(--primary);margin-bottom:0.75rem;display:block;opacity:.7"></i>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Full Answer Review — Pro Feature</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px">You can see 1 answer preview on Free plan.</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:1rem">Upgrade to Pro to see every answer, AI feedback, and model hints for all questions.</div>
+      <button class="btn btn-primary btn-sm" onclick="window.location.href='payment.html?plan=pro'">
+        <i class="fas fa-crown"></i> Upgrade to Pro
+      </button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="action-grid">
+    <button class="btn btn-primary" onclick="window.location.href='interview-setup.html'">
+      <i class="fas fa-redo"></i> Practice Again
+    </button>
+    <button class="btn btn-secondary" onclick="window.location.href='reports.html'">
+      <i class="fas fa-chart-line"></i> Full Reports
+    </button>
+    <button class="btn btn-secondary" onclick="window.location.href='question-bank.html'">
+      <i class="fas fa-layer-group"></i> Question Bank
+    </button>
+    <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+      <i class="fas fa-home"></i> Dashboard
+    </button>
+  </div>
+
+  <!-- Improvement tip -->
+  <div style="max-width:700px;width:100%;text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:2rem" id="improveTip"></div>
+</div>
+
+<script src="script.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; return; }
+
+  const interviews = getInterviews();
+  if (interviews.length === 0) { window.location.href = 'dashboard.html'; return; }
+
+  // Get latest interview
+  const latest = interviews[interviews.length - 1];
+  const plan = getPlan();
+
+  // Score circle
+  const score = latest.overallScore;
+  const circle = document.getElementById('scoreCircle');
+  const scoreEl = document.getElementById('scoreNum');
+  const gradeEl = document.getElementById('scoreGrade');
+  const subtextEl = document.getElementById('scoreSubtext');
+
+  scoreEl.textContent = score;
+  if (score >= 9)      { circle.className = 'score-circle excellent'; gradeEl.textContent = '🏆 Excellent Performance'; }
+  else if (score >= 7.5) { circle.className = 'score-circle good';      gradeEl.textContent = '👍 Good Performance'; }
+  else if (score >= 6)   { circle.className = 'score-circle average';   gradeEl.textContent = '📈 Average — Keep Practising'; }
+  else                   { circle.className = 'score-circle needs-work'; gradeEl.textContent = '💪 Needs Work — Don\'t Give Up!'; }
+
+  // Subtext - compare to previous
+  if (interviews.length > 1) {
+    const prev = interviews[interviews.length - 2].overallScore;
+    const diff = (score - prev).toFixed(1);
+    subtextEl.textContent = diff >= 0 ? `+${diff} from last session 📈` : `${diff} from last session`;
+    subtextEl.style.color = diff >= 0 ? 'var(--success)' : 'var(--danger)';
+  } else {
+    subtextEl.textContent = 'Your first interview — great start!';
+  }
+
+  // Stats
+  const dur = latest.duration || 0;
+  const mins = Math.floor(dur / 60), secs = dur % 60;
+  document.getElementById('statQ').textContent = latest.questionsAnswered || 0;
+  document.getElementById('statDur').textContent = mins + 'm ' + secs + 's';
+  document.getElementById('statTotal').textContent = interviews.length;
+
+  // Cheat warnings
+  if (latest.cheatWarnings > 0) {
+    document.getElementById('cheatBanner').style.display = 'flex';
+    document.getElementById('cheatCount').textContent = latest.cheatWarnings;
+  }
+
+  // Skill breakdown
+  const skills = [
+    { name: 'Communication', key: 'communication' },
+    { name: 'Problem Solving', key: 'problemSolving' },
+    { name: 'Confidence', key: 'confidence' },
+    { name: 'Structure', key: 'structure' },
+    { name: 'Professionalism', key: 'professionalism' },
+  ];
+  const sbEl = document.getElementById('skillBreakdown');
+  sbEl.innerHTML = skills.map(s => {
+    const val = latest.scores?.[s.key] || 0;
+    const pct = val * 10;
+    const col = val >= 8 ? 'success' : val < 6 ? 'danger' : '';
+    const txtCol = val >= 8 ? 'var(--success)' : val < 6 ? 'var(--danger)' : 'var(--text)';
+    return `<div class="skill-row">
+      <div class="skill-name">${s.name}</div>
+      <div class="skill-bar-wrap"><div class="progress-track"><div class="progress-fill ${col}" style="width:${pct}%"></div></div></div>
+      <div class="skill-val" style="color:${txtCol}">${val}</div>
+    </div>`;
+  }).join('');
+
+  // Q&A Review — Pro/Team only
+  const answers = latest.answers || [];
+  const qaList = document.getElementById('qaList');
+  const qaLocked = document.getElementById('qaLocked');
+  const qaLockBadge = document.getElementById('qaLockBadge');
+
+  if (plan === 'free') {
+    // Free: show questions but lock detailed feedback
+    qaLockBadge.style.display = 'inline-flex';
+    if (answers.length > 0) {
+      // Show first answer preview, lock rest
+      qaList.innerHTML = answers.slice(0, 1).map((a, i) => buildQAItem(a, i, true)).join('');
+      if (answers.length > 1) {
+        qaLocked.style.display = 'block';
+      }
+    } else {
+      qaLocked.style.display = 'block';
+    }
+  } else {
+    // Pro/Team: full access
+    if (answers.length > 0) {
+      qaList.innerHTML = answers.map((a, i) => buildQAItem(a, i, false)).join('');
+      document.querySelectorAll('.qa-header').forEach(h => {
+        h.addEventListener('click', () => {
+          const body = h.nextElementSibling;
+          body.classList.toggle('open');
+          const icon = h.querySelector('.qa-toggle-icon');
+          if (icon) icon.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+        });
+      });
+    } else {
+      qaList.innerHTML = '<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:1rem">No recorded answers in this session.</p>';
+    }
+  }
+
+  function buildQAItem(a, i, locked) {
+    const fb = a.feedback || {};
+    const s = fb.overallScore || 0;
+    const col = s >= 8 ? 'var(--success)' : s < 6 ? 'var(--danger)' : 'var(--warning)';
+    const wc = (a.answer || '').trim().split(/\s+/).filter(Boolean).length;
+    return `<div class="qa-item">
+      <div class="qa-header">
+        <div class="qa-q">Q${i+1}: ${(a.question || '').substring(0, 70)}${a.question?.length > 70 ? '...' : ''}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <div class="qa-score" style="color:${col}">${s}/10</div>
+          ${locked ? '<i class="fas fa-lock" style="color:var(--text-muted);font-size:12px"></i>' : '<i class="fas fa-chevron-down qa-toggle-icon" style="color:var(--text-muted);font-size:12px;transition:transform 0.2s"></i>'}
+        </div>
+      </div>
+      ${locked ? '' : `<div class="qa-body">
+        ${wc < 5 ? '<div style="background:var(--danger-bg);border-radius:4px;padding:0.5rem 0.75rem;font-size:12px;color:#b91c1c;margin-bottom:0.75rem">⚠️ No answer was detected for this question.</div>' : `<div class="qa-label">Your Answer (${wc} words)</div><div class="qa-text">${(a.answer || '').substring(0, 300)}${(a.answer || '').length > 300 ? '...' : ''}</div>`}
+        <div class="qa-label">AI Feedback</div>
+        <div class="qa-text">${fb.summary || ''}</div>
+        ${(fb.improvements || []).length > 0 ? `<div class="qa-label">To Improve</div><div class="qa-text">${fb.improvements.map(imp => '• ' + imp).join('<br>')}</div>` : ''}
+        <div class="qa-label">Model Answer Hint</div>
+        <div class="qa-text" style="background:var(--info-bg);padding:0.5rem 0.75rem;border-radius:4px;color:var(--primary)">${fb.modelAnswerHint || ''}</div>
+      </div>`}
+    </div>`;
+  }
+
+  // Improvement tip
+  const tipEl = document.getElementById('improveTip');
+  const lowestSkill = skills.reduce((low, s) => {
+    const v = latest.scores?.[s.key] || 0;
+    return (!low || v < (latest.scores?.[low.key] || 0)) ? s : low;
+  }, null);
+  if (lowestSkill) {
+    const tips = {
+      communication: 'Tip: Practice speaking out loud daily. Record yourself and listen back.',
+      problemSolving: 'Tip: Before answering, take 5 seconds to structure your thoughts.',
+      confidence: 'Tip: Eliminate hedging words like "I think maybe" — state your answer directly.',
+      structure: 'Tip: Every answer should have a clear beginning (context), middle (action), and end (result).',
+      professionalism: 'Tip: Research the company before each real interview — it shows you care.',
+    };
+    tipEl.innerHTML = `💡 Focus area: <strong>${lowestSkill.name}</strong> — ${tips[lowestSkill.key] || ''}`;
+  }
+
+  // Confetti for high scores
+  if (score >= 8) launchConfetti();
+});
+
+function launchConfetti() {
+  const wrap = document.getElementById('confettiWrap');
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.style.cssText = `position:absolute;left:${Math.random()*100}%;top:-10px;width:8px;height:8px;background:hsl(${Math.random()*360},100%,55%);border-radius:${Math.random()>0.5?'50%':'2px'};animation:fall ${2+Math.random()*3}s linear ${Math.random()*1.5}s both`;
+    wrap.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+  const style = document.createElement('style');
+  style.textContent = '@keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}';
+  document.head.appendChild(style);
+}
+</script>
+</body>
+</html>

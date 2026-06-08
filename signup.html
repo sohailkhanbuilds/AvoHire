@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AvoHire · Create Account</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey:            "AIzaSyA_dL9SqbXQOpJDMOz-wQnKLpIIL_PiKxo",
+      authDomain:        "interviewiq-1ede8.firebaseapp.com",
+      projectId:         "interviewiq-1ede8",
+      storageBucket:     "interviewiq-1ede8.firebasestorage.app",
+      messagingSenderId: "282220668716",
+      appId:             "1:282220668716:web:8418778602121b0ce5ae89"
+    });
+  </script>
+
+</head>
+<body>
+<div id="pageLoader" class="page-loader">
+  <div style="text-align:center"><div class="spinner"></div></div>
+</div>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<div class="auth-page">
+  <!-- Left Panel -->
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <div class="auth-brand">
+        <div class="auth-brand-icon"><i class="fas fa-brain"></i></div>
+        <div class="auth-brand-name">AvoHire</div>
+      </div>
+      <div class="auth-tagline">Your interview journey starts here</div>
+      <p class="auth-desc">Build real confidence through structured AI-powered practice. Get feedback that actually helps you improve.</p>
+      <div class="auth-features">
+        <div class="auth-feature"><i class="fas fa-check-circle"></i> Free to start — no credit card needed</div>
+        <div class="auth-feature"><i class="fas fa-check-circle"></i> 5 free mock interviews every month</div>
+        <div class="auth-feature"><i class="fas fa-check-circle"></i> Instant AI feedback after every answer</div>
+        <div class="auth-feature"><i class="fas fa-check-circle"></i> Progress tracking & performance reports</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="auth-right">
+    <div class="auth-form-box">
+      <div style="margin-bottom:2rem">
+        <a href="landing.html" style="color:var(--text-muted);font-size:13px;display:inline-flex;align-items:center;gap:6px;text-decoration:none">
+          <i class="fas fa-arrow-left"></i> Back to home
+        </a>
+      </div>
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">Start practicing interviews for free today</p>
+
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-user"></i>
+          <input type="text" id="name" class="form-control" placeholder="Alex Johnson" autocomplete="name">
+        </div>
+        <div class="form-error" id="nameError">Please enter your full name</div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="email" class="form-control" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="form-error" id="emailError">Please enter a valid email address</div>
+      </div>
+
+      <div class="form-group">
+        <label for="role">Target Job Role <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-briefcase"></i>
+          <select id="role" class="form-control" style="padding-left:36px">
+            <option value="">Select a role...</option>
+            <option>Software Engineer</option>
+            <option>Product Manager</option>
+            <option>Data Analyst</option>
+            <option>Marketing Manager</option>
+            <option>Business Analyst</option>
+            <option>UX Designer</option>
+            <option>Sales Executive</option>
+            <option>HR Manager</option>
+            <option>Finance Analyst</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="password" class="form-control" placeholder="Create a strong password" autocomplete="new-password">
+          <button type="button" class="toggle-password" id="togglePwd" aria-label="Toggle password visibility">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        <div class="strength-bar" id="strengthBar" style="margin-top:8px">
+          <div class="strength-seg" id="s1"></div>
+          <div class="strength-seg" id="s2"></div>
+          <div class="strength-seg" id="s3"></div>
+          <div class="strength-seg" id="s4"></div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="strengthLabel">Use 8+ characters with numbers & symbols</div>
+        <div class="form-error" id="passwordError">Password must be at least 8 characters</div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="confirmPassword" class="form-control" placeholder="Repeat your password" autocomplete="new-password">
+          <button type="button" class="toggle-password" id="toggleConfirm" aria-label="Toggle password visibility">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        <div class="form-error" id="confirmError">Passwords do not match</div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:1.25rem">
+        <input type="checkbox" id="agreeTerms" style="width:16px;height:16px;margin-top:3px;accent-color:var(--primary);cursor:pointer;flex-shrink:0">
+        <label for="agreeTerms" style="font-size:13px;color:var(--text-secondary);cursor:pointer;line-height:1.5">
+          I agree to the <a href="#" style="color:var(--primary)">Terms of Service</a> and <a href="#" style="color:var(--primary)">Privacy Policy</a>
+        </label>
+      </div>
+      <div class="form-error" id="termsError" style="margin-top:-0.75rem;margin-bottom:0.75rem">Please accept the terms to continue</div>
+
+      <button class="btn btn-primary btn-full" id="signUpBtn" style="margin-bottom:1rem">
+        <span id="signUpText">Create Free Account</span>
+        <span id="signUpLoader" style="display:none"><i class="fas fa-circle-notch fa-spin"></i></span>
+      </button>
+
+      <div class="divider">
+        <span class="divider-line"></span>
+        <span class="divider-text">or sign up with</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <div class="social-btns" style="margin-bottom:1.5rem">
+        <button class="social-btn" id="googleBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Google
+        </button>
+        <button class="social-btn" id="linkedinBtn">
+          <i class="fab fa-linkedin" style="color:#0077b5;font-size:16px"></i>
+          LinkedIn
+        </button>
+      </div>
+
+      <p style="text-align:center;font-size:14px;color:var(--text-secondary)">
+        Already have an account? <a href="login.html" style="color:var(--primary);font-weight:500">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

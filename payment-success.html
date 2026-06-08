@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AvoHire · Payment Successful</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .success-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:2rem}
+    .success-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:3rem 2.5rem;max-width:480px;width:100%;text-align:center;box-shadow:var(--shadow-lg)}
+    .check-circle{width:80px;height:80px;border-radius:50%;background:var(--success-bg);border:3px solid var(--success);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;color:var(--success)}
+    .confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:1000;overflow:hidden}
+  </style>
+</head>
+<body>
+<div id="pageLoader" class="page-loader"><div style="text-align:center"><div class="spinner"></div></div></div>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<div class="success-page">
+  <div class="success-card">
+    <div class="check-circle"><i class="fas fa-check"></i></div>
+    <h1 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;margin-bottom:0.5rem">Payment Successful!</h1>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:1.5rem" id="planMsg">Your Pro plan is now active. All features are unlocked.</p>
+
+    <div style="background:var(--bg-hover);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.5rem;text-align:left">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.75rem">What's unlocked:</div>
+      <div id="featureList" style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--text-secondary)"></div>
+    </div>
+
+    <div style="background:var(--warning-bg);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-sm);padding:0.875rem;margin-bottom:1.5rem;font-size:13px;color:#b45309;text-align:left">
+      <strong>Note:</strong> This is a demo payment. To enable real payments, integrate Stripe — see README.md for setup guide.
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="window.location.href='dashboard.html'">
+      <i class="fas fa-rocket"></i> Go to Dashboard
+    </button>
+    <div style="margin-top:0.75rem">
+      <a href="settings.html" style="font-size:13px;color:var(--text-secondary)">Go to Settings</a>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const params=new URLSearchParams(window.location.search);
+  const plan=params.get('plan')||'pro';
+  const planMsg=document.getElementById('planMsg');
+  const featureList=document.getElementById('featureList');
+
+  const features={
+    pro:['Unlimited mock interviews','All 4 interview types (General, Behavioral, Technical, Company)','Hard difficulty questions','Full performance analytics & charts','Answer-by-answer review after each session','Company-specific prep (Google, Amazon, Microsoft, Meta)','Up to 10 questions per session','PDF report export'],
+    team:['Everything in Pro','Team dashboard & leaderboard','Share analytics with recruiters','Custom question sets','Bulk member management (up to 10)','Priority support']
+  };
+
+  if(planMsg) planMsg.textContent=`Your ${plan.charAt(0).toUpperCase()+plan.slice(1)} plan is now active. All features are unlocked.`;
+  if(featureList) featureList.innerHTML=(features[plan]||features.pro).map(f=>`<div style="display:flex;gap:8px"><i class="fas fa-check" style="color:var(--success);margin-top:3px;flex-shrink:0"></i>${f}</div>`).join('');
+
+  // Confetti
+  const wrap=document.getElementById('confettiWrap');
+  for(let i=0;i<80;i++){
+    const c=document.createElement('div');
+    c.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-10px;width:${6+Math.random()*6}px;height:${6+Math.random()*6}px;background:hsl(${Math.random()*360},100%,55%);border-radius:${Math.random()>0.5?'50%':'2px'};animation:fall ${2+Math.random()*3}s linear ${Math.random()*1}s both`;
+    wrap.appendChild(c);
+    setTimeout(()=>c.remove(),6000);
+  }
+  const s=document.createElement('style');
+  s.textContent='@keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}';
+  document.head.appendChild(s);
+});
+</script>
+</body>
+</html>

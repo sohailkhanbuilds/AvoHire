@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AvoHire · Reports & Analytics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="pageLoader" class="page-loader">
+  <div style="text-align:center">
+    <div class="spinner"></div>
+    <p style="margin-top:1rem;color:var(--text-secondary);font-size:14px">Loading Reports...</p>
+  </div>
+</div>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<button class="hamburger" id="hamburger" aria-label="Open menu">
+  <i class="fas fa-bars" style="font-size:16px;color:var(--text)"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-container">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fas fa-brain"></i></div>
+      AvoHire
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+      <a href="interview-setup.html" class="nav-item"><i class="fas fa-comment-dots"></i><span>Mock Interview</span></a>
+      <a href="question-bank.html" class="nav-item"><i class="fas fa-layer-group"></i><span>Question Bank</span></a>
+      <a href="reports.html" class="nav-item active"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+      <a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>Leaderboard</span></a>
+      <div class="sidebar-section-label">Account</div>
+      <a href="profile.html" class="nav-item"><i class="fas fa-user-circle"></i><span>Profile</span></a>
+      <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Log Out</span></a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Performance Analytics</h1>
+        <p class="page-subtitle">Track your progress and identify areas for improvement</p>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" id="exportBtn">
+          <i class="fas fa-download"></i> Export PDF
+        </button>
+        <button class="btn btn-primary" onclick="window.location.href='interview-setup.html'">
+          <i class="fas fa-play-circle"></i> New Interview
+        </button>
+      </div>
+    </div>
+
+    <!-- No data state -->
+    <div id="noDataState" style="display:none">
+      <div class="card" style="text-align:center;padding:3rem">
+        <i class="fas fa-chart-line" style="font-size:3rem;color:var(--text-muted);margin-bottom:1rem"></i>
+        <h3 style="margin-bottom:0.5rem">No interview data yet</h3>
+        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:1.5rem">Complete your first mock interview to see your performance analytics here.</p>
+        <button class="btn btn-primary" onclick="window.location.href='interview-setup.html'">
+          <i class="fas fa-play-circle"></i> Start First Interview
+        </button>
+      </div>
+    </div>
+
+    <!-- Data state -->
+    <div id="dataState">
+      <!-- Summary stats -->
+      <div class="stats-grid" style="margin-bottom:1.5rem">
+        <div class="stat-card">
+          <div class="stat-label">Overall Score</div>
+          <div class="stat-value" id="rOverallScore">—</div>
+          <div class="stat-change up" id="rScoreTrend" style="display:none">
+            <i class="fas fa-arrow-up"></i> Improving
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Interviews Done</div>
+          <div class="stat-value" id="rTotalInterviews">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Best Score</div>
+          <div class="stat-value" id="rBestScore">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Questions Answered</div>
+          <div class="stat-value" id="rTotalQuestions">0</div>
+        </div>
+      </div>
+
+      <!-- Skill Scores -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <h3>Skill Breakdown</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;margin-top:1rem">
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;color:var(--text-secondary)">Communication</span>
+              <span style="font-size:13px;font-weight:600" id="sCommunication">—</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="pCommunication" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;color:var(--text-secondary)">Problem Solving</span>
+              <span style="font-size:13px;font-weight:600" id="sProblem">—</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="pProblem" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;color:var(--text-secondary)">Confidence</span>
+              <span style="font-size:13px;font-weight:600" id="sConfidence">—</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="pConfidence" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;color:var(--text-secondary)">Structure</span>
+              <span style="font-size:13px;font-weight:600" id="sStructure">—</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="pStructure" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;color:var(--text-secondary)">Professionalism</span>
+              <span style="font-size:13px;font-weight:600" id="sProfessionalism">—</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="pProfessionalism" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;color:var(--text-secondary)">Overall</span>
+              <span style="font-size:13px;font-weight:600" id="sOverall">—</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="pOverall" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid-2" style="margin-bottom:1.5rem">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Score Trend</h3>
+            <span class="badge badge-info" id="trendBadge">Last 10</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Skill Radar</h3>
+            <span class="badge badge-info">Latest Interview</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interview History Table -->
+      <h2 style="font-size:18px;margin-bottom:1rem">Interview History</h2>
+      <div class="table-wrap" style="margin-bottom:1.5rem">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Role / Type</th>
+              <th>Questions</th>
+              <th>Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Improvement Tips -->
+      <div class="card">
+        <h3>AI Improvement Tips</h3>
+        <div id="improvementTips" style="margin-top:1rem;display:flex;flex-direction:column;gap:12px"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

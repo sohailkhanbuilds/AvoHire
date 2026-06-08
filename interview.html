@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>AvoHire · Interview Session</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Full-viewport, no-scroll interview layout ── */
+    html, body { height: 100%; overflow: hidden; margin: 0; padding: 0; }
+
+    .iv-shell {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Top bar ── */
+    .iv-topbar {
+      flex-shrink: 0;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .iv-brand { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; display:flex; align-items:center; gap:6px; }
+    .iv-meta  { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+
+    .iv-timer {
+      font-family:'Syne',sans-serif; font-size:15px; font-weight:700;
+      background:var(--bg-hover); border:1px solid var(--border);
+      border-radius:6px; padding:4px 10px; min-width:60px; text-align:center;
+    }
+    .iv-timer.warning { color:var(--warning); border-color:rgba(245,158,11,.3); background:var(--warning-bg); }
+    .iv-timer.danger  { color:var(--danger);  border-color:rgba(239,68,68,.3);  background:var(--danger-bg); }
+
+    /* ── Two-column body (fills remaining height) ── */
+    .iv-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ── Left column: question ── */
+    .iv-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+      padding: 10px 8px 8px 10px;
+      border-right: 1px solid var(--border);
+    }
+
+    .iv-interviewer {
+      flex-shrink: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .iv-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg,#1e3a8a,#2563eb);
+      display:flex; align-items:center; justify-content:center;
+      font-size:16px; color:#fff; flex-shrink:0;
+    }
+
+    .iv-question-card {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+    .iv-q-num    { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--primary); }
+    .iv-q-text   { font-size:14px; line-height:1.6; color:var(--text); flex-shrink:0; }
+    .iv-q-meta   { display:flex; gap:6px; flex-shrink:0; }
+    .iv-tip {
+      flex-shrink: 0;
+      padding: 8px 10px;
+      background: var(--info-bg);
+      border-radius: 8px;
+      border: 1px solid rgba(37,99,235,.15);
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .iv-tip strong { color: var(--primary); }
+
+    /* Feedback card inside left col */
+    .iv-feedback {
+      flex-shrink: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: none;
+      overflow-y: auto;
+      max-height: 220px;
+    }
+
+    /* ── Right column: camera + mic ── */
+    .iv-right {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+      padding: 10px 10px 8px 8px;
+    }
+
+    /* Camera */
+    .iv-cam {
+      flex-shrink: 0;
+      position: relative;
+      background: #0d1117;
+      border-radius: 10px;
+      overflow: hidden;
+      /* Fixed aspect on desktop, flexible on mobile */
+      aspect-ratio: 4/3;
+      max-height: 38vh;
+    }
+    #camVideo {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scaleX(-1);
+    }
+    .cam-overlay { position:absolute; inset:0; pointer-events:none; }
+    .cam-status-bar {
+      position:absolute; bottom:0; left:0; right:0;
+      background:rgba(0,0,0,.55); backdrop-filter:blur(4px);
+      padding:5px 10px;
+      display:flex; align-items:center; gap:6px;
+      font-size:11px; color:#fff;
+    }
+    .cam-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; animation:camPulse 2s infinite; }
+    .cam-dot.warn { background:#f59e0b; }
+    .cam-dot.err  { background:#ef4444; animation:none; }
+    @keyframes camPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .cam-alert {
+      position:absolute; inset:0;
+      background:rgba(239,68,68,.82);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      color:#fff; font-weight:600; font-size:13px; text-align:center; padding:.75rem;
+      opacity:0; pointer-events:none; transition:opacity .3s;
+    }
+    .cam-alert.show { opacity:1; }
+
+    /* Mic + transcript area */
+    .iv-mic-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+      margin-top: 8px;
+    }
+    .iv-mic-top {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .mic-circle {
+      width:36px; height:36px; border-radius:50%;
+      background:var(--bg-hover); border:1.5px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-size:.95rem; color:var(--text-muted); flex-shrink:0;
+      transition:all .2s;
+    }
+    .mic-circle.active { background:rgba(239,68,68,.1); border-color:var(--danger); color:var(--danger); }
+
+    .mic-bars { display:flex; align-items:center; gap:2px; height:22px; }
+    .mic-bar  { width:3px; background:var(--danger); border-radius:2px; height:5px; transition:height .1s; }
+
+    /* Transcript */
+    .iv-transcript {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.55;
+      overflow-y: auto;
+      min-height: 0;
+      position: relative;
+    }
+    .iv-transcript.listening { border-color:var(--danger); box-shadow:0 0 0 2px rgba(239,68,68,.1); }
+    .iv-transcript-ph { color:var(--text-muted); font-style:italic; }
+
+    .iv-word-count { flex-shrink:0; font-size:11px; color:var(--text-muted); text-align:right; }
+
+    /* Cheat warning strip */
+    .cheat-warning {
+      flex-shrink: 0;
+      background:var(--danger-bg); border:1px solid rgba(239,68,68,.25);
+      border-radius:6px; padding:5px 10px; font-size:12px; color:#b91c1c;
+      display:none; align-items:center; gap:6px;
+    }
+    .cheat-warning.show { display:flex; }
+
+    /* Record button */
+    .iv-record-btn {
+      flex-shrink: 0;
+    }
+
+    /* ── Footer dots ── */
+    .iv-footer {
+      flex-shrink: 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 40px;
+    }
+    .q-nav { display:flex; gap:5px; }
+    .q-dot { width:7px; height:7px; border-radius:50%; background:var(--border); transition:background .2s; }
+    .q-dot.done    { background:var(--success); }
+    .q-dot.current { background:var(--primary); }
+
+    /* Cheat badge */
+    .cheats-badge {
+      position:fixed; top:60px; right:12px;
+      background:var(--danger); color:#fff;
+      border-radius:20px; padding:3px 10px;
+      font-size:11px; font-weight:600; z-index:50; display:none;
+    }
+    .cheats-badge.show { display:block; }
+
+    /* ── Permission screen ── */
+    .permission-screen {
+      position:fixed; inset:0; background:var(--bg);
+      z-index:500; display:flex; align-items:center; justify-content:center;
+    }
+    .permission-card {
+      max-width:440px; width:90%;
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:16px; padding:2rem 1.75rem;
+      text-align:center; box-shadow:var(--shadow-lg);
+    }
+    .perm-list { text-align:left; margin:1.25rem 0; }
+    .perm-item { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); font-size:13px; }
+    .perm-item:last-child { border-bottom:none; }
+
+    /* ── Modals ── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1000; display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:all .2s; }
+    .modal-overlay.open { opacity:1; visibility:visible; }
+    .modal { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; max-width:440px; width:90%; box-shadow:var(--shadow-lg); transform:scale(.95); transition:transform .2s; }
+    .modal-overlay.open .modal { transform:scale(1); }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+    .modal-close { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; }
+    .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:1.25rem; }
+
+    /* ── Mobile: stack columns ── */
+    @media (max-width: 640px) {
+      .iv-body { grid-template-columns: 1fr; overflow-y: auto; }
+      .iv-left { border-right: none; border-bottom: 1px solid var(--border); padding: 8px; }
+      .iv-right { padding: 8px; }
+      .iv-cam { max-height: 28vh; }
+      html, body { overflow: auto; }
+      .iv-shell { height: auto; overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="pageLoader" class="page-loader"><div style="text-align:center"><div class="spinner"></div></div></div>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<!-- Cheat badge -->
+<div class="cheats-badge" id="cheatsBadge">⚠ <span id="cheatsCount">0</span> warning(s)</div>
+
+<!-- Permission Screen -->
+<div class="permission-screen" id="permissionScreen">
+  <div class="permission-card">
+    <div style="width:56px;height:56px;border-radius:50%;background:var(--info-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 1.25rem"><i class="fas fa-shield-alt"></i></div>
+    <h2 style="margin-bottom:.5rem;font-size:20px">Before We Begin</h2>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:.25rem">AvoHire needs these to run a fair, monitored interview session.</p>
+    <div id="browserWarn" style="display:none;background:var(--warning-bg);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:.75rem;margin:.75rem 0;font-size:13px;color:#b45309"><i class="fas fa-exclamation-triangle"></i> <strong>Firefox detected.</strong> Voice recognition only works in Chrome or Edge.</div>
+    <div class="perm-list">
+      <div class="perm-item"><i class="fas fa-microphone" style="color:var(--primary);width:16px"></i><div><div style="font-weight:500">Microphone</div><div style="font-size:11px;color:var(--text-muted)">Transcribe & analyse your answers</div></div><span class="badge badge-gray" id="micPermBadge">Required</span></div>
+      <div class="perm-item"><i class="fas fa-video" style="color:var(--primary);width:16px"></i><div><div style="font-weight:500">Camera</div><div style="font-size:11px;color:var(--text-muted)">Presence check & cheat detection</div></div><span class="badge badge-gray" id="camPermBadge">Required</span></div>
+      <div class="perm-item"><i class="fas fa-eye" style="color:var(--warning);width:16px"></i><div><div style="font-weight:500">Face Monitoring</div><div style="font-size:11px;color:var(--text-muted)">Alerts if face not visible</div></div><span class="badge badge-warning">Active</span></div>
+    </div>
+    <button class="btn btn-primary btn-full" id="grantPermBtn" style="margin-bottom:.5rem"><i class="fas fa-check-circle"></i> Allow & Start Interview</button>
+    <button class="btn btn-ghost btn-full" onclick="window.location.href='dashboard.html'">Go Back</button>
+    <p id="permError" style="color:var(--danger);font-size:12px;margin-top:.5rem;display:none"></p>
+  </div>
+</div>
+
+<!-- Main Interview Shell -->
+<div class="iv-shell" id="interviewUI" style="display:none">
+
+  <!-- Top bar -->
+  <div class="iv-topbar">
+    <div class="iv-brand"><i class="fas fa-briefcase" style="color:var(--primary)"></i>AvoHire</div>
+    <div class="iv-meta">
+      <span style="font-size:12px;color:var(--text-secondary)">Q<span id="qCurrent">1</span>/<span id="qTotal">5</span></span>
+      <div class="iv-timer" id="timer">02:30</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-secondary)">
+        <div class="cam-dot" id="topCamDot"></div><span id="topCamLabel">Monitoring</span>
+      </div>
+      <button class="btn btn-danger btn-sm" id="quitBtn" style="padding:5px 12px;font-size:12px"><i class="fas fa-sign-out-alt"></i> Quit</button>
+    </div>
+  </div>
+
+  <!-- Two-column body -->
+  <div class="iv-body">
+
+    <!-- LEFT: Question + feedback -->
+    <div class="iv-left">
+
+      <div class="iv-interviewer">
+        <div class="iv-avatar"><i class="fas fa-robot"></i></div>
+        <div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:3px">Alex — AI Interviewer</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;background:var(--success-bg);color:#15803d;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:500">
+            <div class="listening-dot" id="statusDot" style="width:5px;height:5px;background:var(--success);border-radius:50%;animation:pulse 1.5s infinite"></div>
+            <span id="statusText">Ready</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="iv-question-card">
+        <div class="iv-q-num" id="qNumLabel">Question 1 of 5</div>
+        <div class="iv-q-text" id="questionText">Loading...</div>
+        <div class="iv-q-meta">
+          <span class="q-category" id="qCategory" style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-hover);color:var(--text-secondary);border-radius:20px;padding:2px 8px;font-size:11px"><i class="fas fa-tag"></i> General</span>
+          <span class="badge badge-gray" id="qDifficulty" style="font-size:11px">Easy</span>
+        </div>
+        <div class="iv-tip"><strong><i class="fas fa-lightbulb"></i> Tip:</strong> <span id="qTip">Use STAR method</span></div>
+      </div>
+
+      <!-- Feedback card (shown after answer, no next button here) -->
+      <div id="feedbackCard" class="iv-feedback">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+          <i class="fas fa-robot" style="color:var(--primary);font-size:13px"></i>
+          <span style="font-weight:600;font-size:13px">AI Feedback</span>
+          <span class="badge" id="feedbackScore" style="font-size:11px"></span>
+        </div>
+        <div id="feedbackContent" style="font-size:12px;color:var(--text-secondary);line-height:1.6"></div>
+      </div>
+
+      <!-- Next button — always visible at bottom of question column -->
+      <button class="btn btn-primary" id="nextQBtn"
+        style="display:none;flex-shrink:0;font-size:13px;margin-top:6px">
+        Next Question
+      </button>
+
+    </div>
+
+    <!-- RIGHT: Camera + mic -->
+    <div class="iv-right">
+
+      <div class="iv-cam" id="camWrap">
+        <video id="camVideo" autoplay muted playsinline></video>
+        <canvas id="camCanvas" style="display:none"></canvas>
+        <div class="cam-overlay" id="camOverlay"></div>
+        <div class="cam-alert" id="camAlert"><i class="fas fa-exclamation-triangle" style="font-size:1.25rem;margin-bottom:4px"></i><span id="camAlertText">Face not detected!</span></div>
+        <div class="cam-status-bar"><div class="cam-dot" id="camStatusDot"></div><span id="camStatusText">Camera active</span></div>
+      </div>
+
+      <div class="iv-mic-area">
+        <div class="iv-mic-top">
+          <div class="mic-circle" id="micCircle"><i class="fas fa-microphone-slash" id="micIcon"></i></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:500" id="micLabel">Ready to Record</div>
+            <div style="font-size:11px;color:var(--text-muted)" id="micSubLabel">Click Start to begin</div>
+          </div>
+          <div class="mic-bars" id="micBars" style="display:none">
+            <div class="mic-bar"></div><div class="mic-bar"></div><div class="mic-bar"></div><div class="mic-bar"></div><div class="mic-bar"></div>
+          </div>
+        </div>
+
+        <div class="iv-transcript" id="transcriptBox">
+          <span class="iv-transcript-ph" id="transcriptPlaceholder">Your spoken words appear here in real time...</span>
+          <span id="transcriptText"></span>
+        </div>
+        <div class="iv-word-count" id="wordCount">0 words</div>
+
+        <div class="cheat-warning" id="cheatWarn"><i class="fas fa-exclamation-circle"></i><span id="cheatWarnText">Warning</span></div>
+
+        <button class="btn btn-primary btn-full iv-record-btn" id="recordBtn">
+          <i class="fas fa-microphone" id="recordIcon"></i>
+          <span id="recordBtnText">Start Recording</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer dots -->
+  <div class="iv-footer">
+    <div class="q-nav" id="qDots"></div>
+    <div style="font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%" id="footerQuestion"></div>
+  </div>
+</div>
+
+<!-- Quit Modal -->
+<div class="modal-overlay" id="quitModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Quit Interview?</h3><button class="modal-close" id="closeQuitModal"><i class="fas fa-times"></i></button></div>
+    <p style="font-size:13px;color:var(--text-secondary)">Your progress so far will be saved.</p>
+    <div id="quitWarnings" style="display:none;background:var(--danger-bg);border-radius:8px;padding:.75rem;margin-top:.75rem;font-size:13px;color:#b91c1c"><i class="fas fa-exclamation-triangle"></i> <strong id="quitWarningCount">0</strong> integrity warning(s) recorded.</div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="cancelQuit">Continue</button>
+      <button class="btn btn-danger" id="confirmQuit">Yes, Quit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cheat Alert Modal -->
+<div class="modal-overlay" id="cheatModal">
+  <div class="modal">
+    <div class="modal-header"><h3 style="color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> Integrity Warning</h3></div>
+    <p style="font-size:13px;color:var(--text-secondary)" id="cheatModalText">Your face was not detected for several seconds.</p>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:.5rem">All violations are recorded and affect your session score.</p>
+    <div class="modal-footer"><button class="btn btn-primary btn-full" id="dismissCheatModal">I Understand — Continue</button></div>
+  </div>
+</div>
+
+<script>
+if(!window.SpeechRecognition && !window.webkitSpeechRecognition){
+  document.getElementById('browserWarn').style.display='block';
+}
+</script>
+<script src="script.js"></script>
+</body>
+</html>
